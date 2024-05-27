@@ -9,4 +9,3 @@ path = "src/shell.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [target.x86_64-pc-windows-gnu]
 rustflags = ["-C", "linker=clang-12"]
-[dependencies]
