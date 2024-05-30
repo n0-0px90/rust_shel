@@ -3,6 +3,20 @@ use std::io::Write;
 use std::env;
 use std::path::Path;
 use std::fs;
+use std::str::SplitWhitespace;
+
+fn join_string(cmd_split: SplitWhitespace) -> String {
+    let mut sentence = String::new();
+    let mut char_array = cmd_split;
+    while let Some(word) = char_array.next(){
+        if sentence != "".to_string(){
+            sentence.push(' ')
+        }
+        sentence.push_str(word)
+    }
+    return sentence;
+
+}
 
 fn windows_shell(){
     //Prints what OS you're on
@@ -24,11 +38,15 @@ fn windows_shell(){
             match command {
                 //Creating commands to run as if they're built in
                 "cd" => {
+                    let args_clone = args.clone();
                     let change_dir = args.peekable().peek().map_or("/", |x: &&str| *x);
                     let root = Path::new(change_dir);
                     if let Err(e) = env::set_current_dir(&root) {
-                        eprintln!("{}", e);
-                        println!("That didnt work, dunno how to fix it yet.");
+                        let dir_spaces = join_string(args_clone);
+                        let changed_dir = Path::new(&dir_spaces);
+                        if let Err(e) = env::set_current_dir(&changed_dir) {
+                            eprintln!("{}",e)
+                        }
                     }
                     previous_command = None;
                 },
@@ -43,7 +61,7 @@ fn windows_shell(){
                     }
                 },
                 "file" => {
-                    let file_type = args.next().unwrap();
+                    let file_type = join_string(args);
                     let file = Path::new(&file_type);
                     let path = fs::metadata(file).unwrap();
                     if path.is_file() == true {
