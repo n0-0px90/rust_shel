@@ -34,7 +34,7 @@ fn windows_shell(){
         while let Some(command) = commands.next(){
             let mut cmd_split = command.trim().split_whitespace();
             let command = cmd_split.next().unwrap();
-            let mut args = cmd_split;
+            let args = cmd_split;
             match command {
                 //Creating commands to run as if they're built in
                 "cd" => {
