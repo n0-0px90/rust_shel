@@ -15,7 +15,6 @@ fn join_string(cmd_split: SplitWhitespace) -> String {
         sentence.push_str(word)
     }
     return sentence;
-
 }
 
 fn windows_shell(){
@@ -34,14 +33,14 @@ fn windows_shell(){
         while let Some(command) = commands.next(){
             let mut cmd_split = command.trim().split_whitespace();
             let command = cmd_split.next().unwrap();
-            let args = cmd_split;
+            let mut args = cmd_split;
             match command {
                 //Creating commands to run as if they're built in
                 "cd" => {
                     let args_clone = args.clone();
                     let change_dir = args.peekable().peek().map_or("/", |x: &&str| *x);
                     let root = Path::new(change_dir);
-                    if let Err(e) = env::set_current_dir(&root) {
+                    if let Err(_) = env::set_current_dir(&root) {
                         let dir_spaces = join_string(args_clone);
                         let changed_dir = Path::new(&dir_spaces);
                         if let Err(e) = env::set_current_dir(&changed_dir) {
@@ -53,14 +52,25 @@ fn windows_shell(){
                 "pwd" => {
                     let present_directory = env::current_dir().unwrap();
                     println!("{}", present_directory.display());
+                    previous_command = None;
                 },
                 "ls" => {
-                    let files = fs::read_dir("./").unwrap();
-                    for file in files{
-                        println!("{}", file.unwrap().path().display());
+                    //TODO: After testing that this error handling works, find a way to LS in dirs with spaces in the name
+                    if let Err(e) = fs::read_dir("./"){
+                        eprintln!("{:#?}", e)
+                    } else {
+                        let files = fs::read_dir("./").unwrap();
+                        for file in files{
+                            println!("{}", file.unwrap().path().display());
+                        }
                     }
+                    previous_command = None;
                 },
                 "file" => {
+                    //This should work, as None args next should match this instead of crashing my prog
+                    if let None = args.next(){ 
+                        println!("Syntax: file <file_to_file>")
+                    }
                     let file_type = join_string(args);
                     let file = Path::new(&file_type);
                     let path = fs::metadata(file).unwrap();
@@ -69,6 +79,7 @@ fn windows_shell(){
                     } else if path.is_dir() == true {
                         println!("{} is a directory.", file_type)
                     }
+                    previous_command = None;
                 },
                 //Exit gracefully
                 "exit" => return,
