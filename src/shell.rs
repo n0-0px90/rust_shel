@@ -57,7 +57,7 @@ fn windows_shell(){
                 "ls" => {
                     //TODO: After testing that this error handling works, find a way to LS in dirs with spaces in the name
                     if let Err(e) = fs::read_dir("./"){
-                        eprintln!("{:#?}", e)
+                        eprintln!("{:#?}", e) //This fixed previous crash, will tell user if folder is inaccessable
                     } else {
                         let files = fs::read_dir("./").unwrap();
                         for file in files{
@@ -68,18 +68,18 @@ fn windows_shell(){
                 },
                 "file" => {
                     //This should work, as None args next should match this instead of crashing my prog
-                    if let None = args.next(){ 
+                    if args.next() == None{ 
                         println!("Syntax: file <file_to_file>")
+                    } else {
+                        let file_type = join_string(args);
+                        let file = Path::new(&file_type);
+                        let path = fs::metadata(file).unwrap();
+                        if path.is_file() == true {
+                            println!("{} is a file.", file_type)
+                        } else if path.is_dir() == true {
+                            println!("{} is a directory.", file_type)
+                        }
                     }
-                    let file_type = join_string(args);
-                    let file = Path::new(&file_type);
-                    let path = fs::metadata(file).unwrap();
-                    if path.is_file() == true {
-                        println!("{} is a file.", file_type)
-                    } else if path.is_dir() == true {
-                        println!("{} is a directory.", file_type)
-                    }
-                    previous_command = None;
                 },
                 //Exit gracefully
                 "exit" => return,
