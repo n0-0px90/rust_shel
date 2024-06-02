@@ -20,7 +20,7 @@ fn join_string(cmd_split: SplitWhitespace) -> String {
 fn windows_shell(){
     //Prints what OS you're on
     println!("{}", env::consts::OS);
-    println!("While on windows, there are limited commands. View documentation. Please invoke powershell or cmd to run commands on target.");
+    println!("The built in functions are limited to enumeration only.\nDrop into cmd or PS to execute.");
     loop{
         //Sets up exactly like the linux shell
         let present_working_directory = env::current_dir().unwrap();
@@ -33,7 +33,7 @@ fn windows_shell(){
         while let Some(command) = commands.next(){
             let mut cmd_split = command.trim().split_whitespace();
             let command = cmd_split.next().unwrap();
-            let mut args = cmd_split;
+            let args = cmd_split;
             match command {
                 //Creating commands to run as if they're built in
                 "cd" => {
@@ -54,7 +54,7 @@ fn windows_shell(){
                     println!("{}", present_directory.display());
                     previous_command = None;
                 },
-                "ls" => {
+                "ls" | "dir" => {
                     //TODO: After testing that this error handling works, find a way to LS in dirs with spaces in the name
                     if let Err(e) = fs::read_dir("./"){
                         eprintln!("{:#?}", e) //This fixed previous crash, will tell user if folder is inaccessable
@@ -68,16 +68,37 @@ fn windows_shell(){
                 },
                 "file" => {
                     //This should work, as None args next should match this instead of crashing my prog
-                    if args.next() == None{ 
-                        println!("Syntax: file <file_to_file>")
-                    } else {
                         let file_type = join_string(args);
                         let file = Path::new(&file_type);
-                        let path = fs::metadata(file).unwrap();
-                        if path.is_file() == true {
-                            println!("{} is a file.", file_type)
-                        } else if path.is_dir() == true {
-                            println!("{} is a directory.", file_type)
+                        if let Err(e) = fs::metadata(file){
+                            eprintln!("{:#?}", e)
+                        } else {
+                            let path = fs::metadata(file).expect("File isn't present in this scope.");
+                            if path.is_file() == true {
+                                println!("{} is a file.", file_type)
+                            } else if path.is_dir() == true {
+                                println!("{} is a directory.", file_type)
+                            }
+                        }
+                        previous_command = None;
+                    },
+                "clear" => {
+                    let mut count = 35;
+                    while count != 0{
+                        println!("\n");
+                        count = count - 1;
+                    }
+                    previous_command = None;
+                },
+                "cat" => {
+                    let file_in_question = join_string(args);
+                    let readme = fs::read_to_string(file_in_question);
+                    match readme {
+                        Ok(ok) =>{
+                            println!("{}", ok)
+                        }
+                        Err(err) =>{
+                            eprintln!("{}", err)
                         }
                     }
                 },
@@ -109,6 +130,11 @@ fn windows_shell(){
         }
     }
 }
+
+
+
+
+
 
 fn linux_shell(){
     //Prints what OS you're on
@@ -169,6 +195,7 @@ fn linux_shell(){
     }
 }
 
+
 fn check_os(){
     let operating_system = env::consts::OS;
     if operating_system == "windows"{
@@ -177,6 +204,7 @@ fn check_os(){
         linux_shell();
     }
 }
+
 fn main() {
     check_os();
 }
