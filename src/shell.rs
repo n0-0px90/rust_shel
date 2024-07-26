@@ -131,11 +131,6 @@ fn windows_shell(){
     }
 }
 
-
-
-
-
-
 fn linux_shell(){
     //Prints what OS you're on
     println!("{}", env::consts::OS);
@@ -194,7 +189,6 @@ fn linux_shell(){
         }
     }
 }
-
 
 fn check_os(){
     let operating_system = env::consts::OS;
